@@ -13,10 +13,10 @@ struct RecipeList: View {
     var body: some View {
         VStack{
             HStack {
-                Text("\(recipes.count)\(recipes.count > 1 ? "recipes" : "recipes")")
-                    .font(.headline)
-                    .fontWeight(.medium)
-                .opacity(0.7)
+//                Text("\(recipes.count)\(recipes.count > 1 ? "recipes" : "recipes")")
+//                    .font(.headline)
+//                    .fontWeight(.medium)
+//                .opacity(0.7)
             
                 Spacer()
             }

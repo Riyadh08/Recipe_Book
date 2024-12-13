@@ -8,6 +8,7 @@ struct SearchView: View {
     @State private var category: String = ""
     
     @State private var filteredRecipes: [Recipe] = []
+    @State private var isSearching: Bool = false // Navigation trigger
     
     var body: some View {
         NavigationView {
@@ -53,23 +54,21 @@ struct SearchView: View {
                         .padding([.leading, .trailing])
                 }
                 
-                if filteredRecipes.isEmpty {
+                if filteredRecipes.isEmpty && !isSearching {
                     Text("No recipes found.")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                         .padding()
-                } else {
-                    List(filteredRecipes) { recipe in
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(recipe.name)
-                                .font(.headline)
-                            Text("Chef: \(recipe.chefName)")
-                            Text("Category: \(recipe.category)")
-                            Text("Published on: \(recipe.datePublished)")
-                        }
-                        .padding()
-                    }
                 }
+                
+                // Navigate to results view if recipes are found
+                NavigationLink(
+                    destination: AfterSearchView(recipes: filteredRecipes),
+                    isActive: $isSearching
+                ) {
+                    EmptyView()
+                }
+                .hidden()
             }
             .navigationTitle("Search Recipes")
         }
@@ -77,9 +76,7 @@ struct SearchView: View {
     }
     
     private func searchRecipes() {
-        // Firestore reference
         let db = Firestore.firestore()
-        
         var query: Query = db.collection("Recipes")
         
         if !recipeName.isEmpty {
@@ -96,14 +93,13 @@ struct SearchView: View {
         
         query.getDocuments { snapshot, error in
             if let error = error {
-                // Handle error (Show alert with error message)
                 print("Error searching recipes: \(error.localizedDescription)")
             } else {
-                // Process matching recipes
                 if let documents = snapshot?.documents {
                     self.filteredRecipes = documents.compactMap { document in
                         try? document.data(as: Recipe.self)
                     }
+                    self.isSearching = true // Trigger navigation
                 }
             }
         }
