@@ -20,7 +20,7 @@ struct TabBar: View {
             
             FavouritesView()
                 .tabItem {
-                    Label("Favorites", systemImage: "heart.fill")
+                    Label("Featured Chefs", systemImage: "heart.fill")
                 }
             
             ProfileView()

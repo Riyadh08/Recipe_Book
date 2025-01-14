@@ -5,87 +5,90 @@ import FirebaseFirestore
 struct NewRecipeView: View {
     @State private var recipeName: String = ""
     @State private var chefName: String = ""
-    @State private var category: String = ""
+    @State private var selectedCategory: Category? = nil // Start with no category selected
     @State private var imageURL: String = ""
-    @State private var age: String = ""
     @State private var ingredients: String = ""
     @State private var description: String = ""
+    @State private var showSuccessMessage: Bool = false
+    @State private var showCategoryErrorMessage: Bool = false // State to show error message for category
     
-    @State private var navigateToHomeView = false
-    
-    @Environment(\.presentationMode) var presentationMode
-
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Recipe Name
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Recipe Name")
-                            .font(.headline)
-                        TextField("Enter recipe name", text: $recipeName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
+                    TextField("Enter recipe name", text: $recipeName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
                     
                     // Chef Name
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Chef Name")
-                            .font(.headline)
-                        TextField("Enter chef's name", text: $chefName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
+                    TextField("Enter chef's name", text: $chefName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
                     
-                    // Category
+                    // Category Dropdown
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Category")
                             .font(.headline)
-                        TextField("Enter category", text: $category)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
+                        
+                        Menu {
+                            Button(action: {
+                                selectedCategory = nil
+                            }) {
+                                Text("None")
+                            }
+                            
+                            ForEach(Category.allCases, id: \.self) { category in
+                                Button(action: {
+                                    selectedCategory = category
+                                }) {
+                                    Text(category.rawValue)
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                // Show selected category or default text if none selected
+                                Text(selectedCategory?.rawValue ?? "Select Category")
+                                    .foregroundColor(selectedCategory == nil ? .gray : .gray)
+                                    .fontWeight(.bold)
+                                    .padding(.trailing, 10)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(height: 50) // Adjust height to match input fields
+                            }
+                        }
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                    }.textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
                     
                     // Image URL
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Image URL")
-                            .font(.headline)
-                        TextField("Enter image URL", text: $imageURL)
-                            .keyboardType(.URL)
-                            .textContentType(.URL)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
-                    
-                    // Age
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Age (e.g., years for recipe)")
-                            .font(.headline)
-                        TextField("Enter age", text: $age)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
+                    TextField("Enter image URL", text: $imageURL)
+                        .keyboardType(.URL)
+                        .textContentType(.URL)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
                     
                     // Ingredients
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Ingredients")
-                            .font(.headline)
-                        TextField("Enter ingredients", text: $ingredients)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal)
-                    }
+                    TextField("Enter ingredients", text: $ingredients)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
                     
                     // Description
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Description")
-                            .font(.headline)
-                        TextEditor(text: $description)
-                            .frame(height: 100)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                            )
+                    TextEditor(text: $description)
+                        .frame(height: 100)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
+                    
+                    // Show category error message if needed
+                    if showCategoryErrorMessage {
+                        Text("Please select a category.")
+                            .foregroundColor(.red)
                             .padding(.horizontal)
                     }
                     
@@ -100,20 +103,32 @@ struct NewRecipeView: View {
                             .padding([.leading, .trailing])
                     }
                     .padding(.top)
+                    
+                    // Success Message
+                    if showSuccessMessage {
+                        Text("Recipe Added Successfully!")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                            .padding()
+                    }
                 }
             }
             .navigationTitle("Add Recipe")
-            .fullScreenCover(isPresented: $navigateToHomeView) {
-                ContentView()
-            }
         }
         .navigationViewStyle(.stack)
     }
     
     private func saveRecipe() {
         // Validate inputs
-        guard !recipeName.isEmpty, !chefName.isEmpty, !category.isEmpty, !imageURL.isEmpty, !age.isEmpty, !ingredients.isEmpty, !description.isEmpty else {
+        guard !recipeName.isEmpty, !chefName.isEmpty, !imageURL.isEmpty, !ingredients.isEmpty, !description.isEmpty else {
             // Show alert for incomplete fields
+            return
+        }
+        
+        // Validate if category is selected
+        if selectedCategory == nil {
+            // Show error message for category
+            showCategoryErrorMessage = true
             return
         }
         
@@ -126,7 +141,7 @@ struct NewRecipeView: View {
             "image": imageURL,
             "ingredients": ingredients,
             "directions": description,
-            "category": category,
+            "category": selectedCategory!.rawValue, // Use the rawValue of the selected category
             "datePublished": Date().formatted(date: .numeric, time: .omitted),
             "chefName": chefName,
             "approved": false  // Default to false
@@ -138,13 +153,32 @@ struct NewRecipeView: View {
                 // Handle error (Show alert with error message)
                 print("Error adding recipe: \(error.localizedDescription)")
             } else {
-                // Handle success (Show alert for success)
+                // Handle success (Show success message)
                 print("Recipe added successfully!")
                 
-                // Navigate to HomeView
-                self.navigateToHomeView = true
+                // Reset fields
+                resetFields()
+                
+                // Show success message
+                showSuccessMessage = true
+                
+                // Hide success message after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    showSuccessMessage = false
+                }
             }
         }
+    }
+
+    // Reset all fields after recipe is added
+    private func resetFields() {
+        recipeName = ""
+        chefName = ""
+        selectedCategory = nil // Reset to no category selected
+        imageURL = ""
+        ingredients = ""
+        description = ""
+        showCategoryErrorMessage = false
     }
 }
 

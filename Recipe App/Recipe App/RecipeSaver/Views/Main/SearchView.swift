@@ -5,7 +5,7 @@ import FirebaseFirestore
 struct SearchView: View {
     @State private var recipeName: String = ""
     @State private var chefName: String = ""
-    @State private var category: String = ""
+    @State private var selectedCategory: Category? = nil  // Category selection
     
     @State private var filteredRecipes: [Recipe] = []
     @State private var isSearching: Bool = false // Navigation trigger
@@ -15,7 +15,7 @@ struct SearchView: View {
             VStack {
                 Form {
                     Section(header: Text("Search Criteria")) {
-                        // Name
+                        // Recipe Name
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Recipe Name")
                                 .font(.headline)
@@ -33,17 +33,47 @@ struct SearchView: View {
                                 .padding(.horizontal)
                         }
                         
-                        // Category
+                        // Category Dropdown - Aligned Left
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Category")
                                 .font(.headline)
-                            TextField("Enter category", text: $category)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .padding(.horizontal)
+                            
+                            Menu {
+                                // Option to reset category
+                                Button(action: {
+                                    selectedCategory = nil
+                                }) {
+                                    Text("None")
+                                }
+                                
+                                // Loop through all categories
+                                ForEach(Category.allCases, id: \.self) { category in
+                                    Button(action: {
+                                        selectedCategory = category
+                                    }) {
+                                        Text(category.rawValue)
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    // Display selected category or default text if none selected
+                                    Text(selectedCategory?.rawValue ?? "Select Category")
+                                        .foregroundColor(selectedCategory == nil ? .gray : .gray)
+                                        .fontWeight(.bold)
+                                        .padding(.trailing, 10)
+                                        .padding()
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                        .frame(height: 50) // Adjust height to match input fields
+                                        .frame(maxWidth: .infinity) // Set consistent width for dropdown
+                                }
+                            }
+                            .padding(.horizontal)
                         }
                     }
                 }
                 
+                // Search Button
                 Button(action: searchRecipes) {
                     Text("Search Recipes")
                         .frame(maxWidth: .infinity)
@@ -54,6 +84,7 @@ struct SearchView: View {
                         .padding([.leading, .trailing])
                 }
                 
+                // Display filtered recipes or no results message
                 if filteredRecipes.isEmpty && !isSearching {
                     Text("No recipes found.")
                         .font(.subheadline)
@@ -75,9 +106,11 @@ struct SearchView: View {
         .navigationViewStyle(.stack)
     }
     
+    // Search Recipes function
     private func searchRecipes() {
         let db = Firestore.firestore()
         var query: Query = db.collection("Recipes")
+            .whereField("approved", isEqualTo: true) // Ensure only approved recipes are fetched
         
         if !recipeName.isEmpty {
             query = query.whereField("name", isEqualTo: recipeName)
@@ -87,8 +120,8 @@ struct SearchView: View {
             query = query.whereField("chefName", isEqualTo: chefName)
         }
         
-        if !category.isEmpty {
-            query = query.whereField("category", isEqualTo: category)
+        if let category = selectedCategory {
+            query = query.whereField("category", isEqualTo: category.rawValue)
         }
         
         query.getDocuments { snapshot, error in
@@ -99,9 +132,15 @@ struct SearchView: View {
                     self.filteredRecipes = documents.compactMap { document in
                         try? document.data(as: Recipe.self)
                     }
-                    self.isSearching = true // Trigger navigation
+                    self.isSearching = true // Trigger navigation to AfterSearchView
                 }
             }
         }
+    }
+}
+
+struct SearchView_Previews: PreviewProvider {
+    static var previews: some View {
+        SearchView()
     }
 }

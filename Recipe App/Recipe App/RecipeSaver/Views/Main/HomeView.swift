@@ -14,8 +14,7 @@ struct HomeView: View {
                         .foregroundColor(.gray)
                         .padding()
                 } else {
-                    // Pass fetched recipes to RecipeList
-                    //RecipeList(recipes: recipes)
+                    // Use LazyVGrid to display recipes
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 15)], spacing: 15) {
                         ForEach(recipes) { recipe in
                             NavigationLink(destination: DetailView(recipe: recipe)) {
@@ -28,30 +27,32 @@ struct HomeView: View {
             }
             .navigationTitle("Welcome to Recipe App")
             .onAppear {
-                fetchRecipes()
+                fetchRecipes() // Fetch recipes when the view appears
             }
         }
         .navigationViewStyle(.stack)
     }
 
-    // Function to fetch recipes from Firestore
+    // Function to fetch approved recipes from Firestore
     private func fetchRecipes() {
         let db = Firestore.firestore()
         
-        // Fetch the recipes collection from Firestore
-        db.collection("Recipes").getDocuments { snapshot, error in
-            if let error = error {
-                print("Error fetching recipes: \(error.localizedDescription)")
-            } else {
-                // Process the fetched documents
-                if let documents = snapshot?.documents {
-                    // Map the documents to Recipe objects
-                    self.recipes = documents.compactMap { document in
-                        try? document.data(as: Recipe.self)
+        // Fetch the recipes collection from Firestore where 'approved' is true
+        db.collection("Recipes")
+            .whereField("approved", isEqualTo: true) // Only fetch approved recipes
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error fetching recipes: \(error.localizedDescription)")
+                } else {
+                    // Process the fetched documents
+                    if let documents = snapshot?.documents {
+                        // Map the documents to Recipe objects
+                        self.recipes = documents.compactMap { document in
+                            try? document.data(as: Recipe.self)
+                        }
                     }
                 }
             }
-        }
     }
 }
 

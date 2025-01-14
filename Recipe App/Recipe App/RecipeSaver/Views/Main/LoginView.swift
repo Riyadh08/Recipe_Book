@@ -10,11 +10,17 @@ struct LoginView: View {
     @State private var alertMessage: String = ""
     @State private var isSuccess: Bool = false
     @State private var isLoggedIn: Bool = false
+    @State private var isAdmin: Bool = false // Track if the user is an admin
 
     var body: some View {
         Group {
             if isLoggedIn {
-                ContentView() // Navigate to ContentView if logged in
+                // Navigate to the appropriate view based on admin status
+                if isAdmin {
+                    AdminView() // Navigate to AdminView for admin users
+                } else {
+                    ContentView() // Navigate to ContentView for regular users
+                }
             } else {
                 NavigationView {
                     VStack {
@@ -85,7 +91,14 @@ struct LoginView: View {
                 return
             }
             
-            // Login successful
+            // Login successful, check if the user is an admin
+            if self.email == "admin@gmail.com" {
+                isAdmin = true
+            } else {
+                isAdmin = false
+            }
+            
+            // Set logged in state to true
             isLoggedIn = true
         }
     }
