@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyB7bEVt54XpM2xPxNBMAQy4wi7qKgd_e6Y</string>
+	<key>GCM_SENDER_ID</key>
+	<string>351361969806</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.kuet.Recipe-App</string>
+	<key>PROJECT_ID</key>
+	<string>recipe-book-cfe44</string>
+	<key>STORAGE_BUCKET</key>
+	<string>recipe-book-cfe44.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:351361969806:ios:753a97113e75ca1648e3df</string>
+	<key>DATABASE_URL</key>
+	<string>https://recipe-book-cfe44-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+</dict>
+</plist>
